@@ -51,7 +51,7 @@ contract TimeCapsule {
 
     function getTimeCapsule(uint256 id) requireOperational external view returns(string memory) {
         require(capsules[id].creatorAddress != address(0), "Message ID doesn't exist.");
-        require(block.timestamp <= capsules[id].timestamp, "Message can't be revealed yet, it is inmortalized!");
+        require(block.timestamp >= capsules[id].timestamp, "Message can't be revealed yet, it is inmortalized!");
         return capsules[id].message;
     }
 
