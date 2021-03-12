@@ -10,14 +10,14 @@ contract TimeCapsule {
     address owner;
     bool isOperational;
 
-    struct Message {
-        string content;
+    struct Capsule {
+        string message;
         uint256 timestamp;
         address creatorAddress;
     }
 
     uint256 ID;
-    mapping(uint256 => Message) private  messages;
+    mapping(uint256 => Capsule) private capsules;
 
     modifier onlyOwner{
         require(msg.sender == owner);
@@ -29,7 +29,7 @@ contract TimeCapsule {
         _;
     }
 
-    event MessageSubmited();
+    event TimeCapsuleSubmited(uint256 id);
 
     constructor() {
         owner = msg.sender;
@@ -37,22 +37,22 @@ contract TimeCapsule {
         isOperational = true;
     }
 
-    function submitMessage(string memory data, uint256 time) requireOperational external {
+    function submitTimeCapsule(string memory data, uint256 time) requireOperational external {
         require(msg.sender != address(0), "This is a 0x0 address!");
-        messages[ID] = Message({
-            content: data,
+        capsules[ID] = Capsule({
+            message: data,
             timestamp: time,
             creatorAddress: msg.sender
         });
 
+        emit TimeCapsuleSubmited(ID);
         ID = ID.add(1);
-        emit MessageSubmited();
     }
 
-    function getMessageById(uint256 id) requireOperational external view returns(string memory) {
-        require(messages[id].creatorAddress != address(0), "Message ID doesn't exist.");
-        require(block.timestamp <= messages[id].timestamp, "Message can't be revealed yet, it is inmortalized!");
-        return messages[id].content;
+    function getTimeCapsule(uint256 id) requireOperational external view returns(string memory) {
+        require(capsules[id].creatorAddress != address(0), "Message ID doesn't exist.");
+        require(block.timestamp <= capsules[id].timestamp, "Message can't be revealed yet, it is inmortalized!");
+        return capsules[id].message;
     }
 
     //Change contract state Operational/Non-Operational
