@@ -1,0 +1,64 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Ethereum Time Capsules Daap</title>
+  <meta name="description" content="The HTML5 Herald">
+  <meta name="author" content="SitePoint">
+
+  <link rel="stylesheet" href="css/styles.css?v=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.3.4/web3.min.js"></script>
+</head>
+
+<body>
+    <h1>Submit your time Capsule</h1>
+        <label for="message">Ethereum time capsule:</label><br>
+        <input type="text" id="capsule-message" value="Write your time capsule message here..."><br>
+        <label for="exp-date">Select date:</label><br>
+        <input type="date">
+        <button id="button">Submit Message</button>
+</body>
+    <script>
+        class App {
+            constructor(web3) {
+               this.web3 = web3;
+               this.metamaskAccountID;
+               this.init()
+            }
+            
+            init(){
+                this.getMetamaskAccountID();
+                this.updateDate();
+            }
+
+           async getMetamaskAccountID(){
+                //Retrieve accounts
+               let account = await this.web3.eth.getAccounts(function(err,res){
+                    if(err) {
+                        console.log('Eror: ',err);
+                        return;
+                    }
+                    console.log('getMetamaskID: ', res);
+                    return res[0];
+                })
+               this.metamaskAccountID = account;
+            }
+
+            updateDate(){
+                let today = new Date();
+                let d = String(today.getDate());
+                let m = String(today.getMonth()+1);
+                let y = String(today.getFullYear());
+                today = `${y}-${m}-${d}`;
+                //Update date field  
+                let dateControl = document.querySelector('input[type="date"]');
+                dateControl.value = today;
+                dateControl.min = today;
+            }
+            
+        }
+    let app = new App(new Web3(Web3.givenProvider || "ws://localhost:8545"));
+    </script>
+</html>
