@@ -4039,30 +4039,10 @@
       "links": {},
       "address": "0xee5AF4C25175A00A8645b789564F0dccac57c3E3",
       "transactionHash": "0xbf18d8aa84991734f23df8c99e942116f476134704f6894c685dc1a0d99c6dd0"
-    },
-    "1615986089449": {
-      "events": {
-        "0xfdb6842836af565497cce72730c740eb324571673b9ba8748bfceea5edfc5d29": {
-          "anonymous": false,
-          "inputs": [
-            {
-              "indexed": false,
-              "internalType": "uint256",
-              "name": "id",
-              "type": "uint256"
-            }
-          ],
-          "name": "TimeCapsuleSubmited",
-          "type": "event"
-        }
-      },
-      "links": {},
-      "address": "0x7D1320354E7B9C30c610a415866D5019F409edB0",
-      "transactionHash": "0x7b4a0e176b310873dbb02ea52aa75e6863d49ee98feb7ea34d68a75e4f6c0bb9"
     }
   },
   "schemaVersion": "3.3.0",
-  "updatedAt": "2021-03-17T13:03:01.587Z",
+  "updatedAt": "2021-03-12T10:17:08.916Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",

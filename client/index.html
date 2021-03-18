@@ -5,60 +5,139 @@
   <meta charset="utf-8">
 
   <title>Ethereum Time Capsules Daap</title>
-  <meta name="description" content="The HTML5 Herald">
-  <meta name="author" content="SitePoint">
 
-  <link rel="stylesheet" href="css/styles.css?v=1.0">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.3.4/web3.min.js"></script>
 </head>
 
 <body>
     <h1>Submit your time Capsule</h1>
-        <label for="message">Ethereum time capsule:</label><br>
-        <input type="text" id="capsule-message" value="Write your time capsule message here..."><br>
-        <label for="exp-date">Select date:</label><br>
-        <input type="date">
-        <button id="button">Submit Message</button>
-</body>
+
+        <label for="text">Ethereum time capsule:</label><br>
+        <textarea id="capsule-message" rows="2" cols="25" placeholder="Write your time capsule message here..." required></textarea><br>
+        <label for="date">Select date:</label><br>
+        <input type="date" id="date-field" required><br>
+        <label for="time">Select time:</label><br>
+        <input type="time" id="time-field" required><br>
+        <button id="button" onclick="app.submitTimeCapsule()">Submit Message</button>
+
+    <script type="application/json" src="contract.js"></script>
     <script>
-        class App {
-            constructor(web3) {
-               this.web3 = web3;
-               this.metamaskAccountID;
-               this.init()
-            }
-            
-            init(){
-                this.getMetamaskAccountID();
-                this.updateDate();
-            }
+    function loadJSON(callback) {   
 
-           async getMetamaskAccountID(){
-                //Retrieve accounts
-               let account = await this.web3.eth.getAccounts(function(err,res){
-                    if(err) {
-                        console.log('Eror: ',err);
-                        return;
-                    }
-                    console.log('getMetamaskID: ', res);
-                    return res[0];
-                })
-               this.metamaskAccountID = account;
-            }
+    var xobj = new XMLHttpRequest();
+    xobj.overrideMimeType("application/json");
+    xobj.open('GET', './abi/TimeCapsule.json', false);
+    xobj.onreadystatechange = function () {
+          if (xobj.readyState == 4 && xobj.status == "200") {
+            // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+            callback(xobj.responseText);
+          }
+    };
+    xobj.send(null);  
+    }
 
-            updateDate(){
-                let today = new Date();
-                let d = String(today.getDate());
-                let m = String(today.getMonth()+1);
-                let y = String(today.getFullYear());
-                today = `${y}-${m}-${d}`;
-                //Update date field  
-                let dateControl = document.querySelector('input[type="date"]');
-                dateControl.value = today;
-                dateControl.min = today;
+    //Load ABI
+    let contract;
+    loadJSON( function(response) {
+        // Parse JSON string into object
+        contract = JSON.parse(response);
+     });
+
+    class App {
+    constructor(web3, AppContract) {
+       this.web3 = web3;
+       this.metamaskAccountID;
+       this.appContract = new this.web3.eth.Contract(AppContract.abi, "0x7D1320354E7B9C30c610a415866D5019F409edB0");
+       this.init()
+    }
+    
+    init(){
+        //Initialize all parameters
+        this.getMetamaskAccountID();
+        this.updateDate();
+        this.updateTime();
+    }
+
+   async getMetamaskAccountID(){
+        //Retrieve accounts
+       let account = await this.web3.eth.getAccounts(function(err,res){
+            if(err) {
+                console.log('Eror: ',err);
+                return;
             }
-            
+            console.log('getMetamaskID: ', res);
+            return res[0];
+        })
+       this.metamaskAccountID = account;
+    }
+
+    updateDate(){
+        let today = new Date();
+        let d = String(today.getDate());
+        let m = String(today.getMonth()+1);
+        let y = String(today.getFullYear());
+        today = `${y}-${m}-${d}`;
+        //Update date field  
+        let dateControl = document.querySelector('input[type="date"]');
+        dateControl.value = today;
+        dateControl.min = today;
+    }
+
+    updateTime(){
+        let time = new Date();
+        let h = time.getHours();
+        let min = time.getMinutes();
+        time = `${h}:${min}`;
+        //Update time field
+        let timeControl = document.querySelector('input[type="time"]');
+        timeControl.value = time;
+        timeControl.min = time;
+    }
+
+    _toTimestamp(year,month,day,hour,min){
+        let d = new Date(Date.UTC(year,month,day,hour,min,"0"));
+        return Math.round(d.getTime()/1000);
+    }
+
+    getTimeCapsule() {
+        console.log("Hello World")
+    }
+
+    async submitTimeCapsule() {
+        try{
+            //Get DOM input values
+            let message = document.querySelector('#capsule-message').value;
+            let time = document.querySelector('input[type=time]').value.split(":",2);
+            let date = document.querySelector('input[type="date"]').value.split("-",3)
+            let t = new Date();
+            let current_timestamp = Math.round(t.getTime()/1000);
+            let future_timestamp = this._toTimestamp(date[0],Number(date[1])-1,date[2],time[0],time[1]);
+
+            console.log('current: ', current_timestamp);
+            console.log('future: ', future_timestamp);
+            //Check valid input Data
+            if(message.length < 10){
+                throw new Error('Message has to be longer than 10 charachters!!');
+            } else if((isNaN(future_timestamp)) || (future_timestamp <= current_timestamp)) {
+                throw new Error('Please select a Future Date!!');
+            }
+            await this.appContract.methods.submitTimeCapsule(message, future_timestamp).send({from: this.metamaskAccountID[0]});
+            alert('Time Capsule Submited!')
+        } catch(e){
+            alert(e.message);
         }
-    let app = new App(new Web3(Web3.givenProvider || "ws://localhost:8545"));
+    }
+}
+
+    let app = new App(new Web3(Web3.givenProvider || "ws://localhost:9545"), contract);
+    window.setInterval(function(){
+        //Update Metamask account if changed
+        app.getMetamaskAccountID();
+        //Update input[type=time] min field every minute
+        app.updateTime();
+        app.updateDate();
+    }, 60000)
+
     </script>
+</body>
 </html>
