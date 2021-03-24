@@ -11,15 +11,21 @@
 
 <body>
     <h1>Submit your time Capsule</h1>
+        <div>
+            <label for="text">Ethereum time capsule:</label><br>
+            <textarea id="capsule-message" rows="2" cols="25" placeholder="Write your time capsule message here..." required></textarea><br>
+            <label for="date">Select date:</label><br>
+            <input type="date" id="date-field" required><br>
+            <label for="time">Select time:</label><br>
+            <input type="time" id="time-field" required><br>
+            <button id="button" onclick="app.submitTimeCapsule()">Submit Message</button>
+        </div>
 
-        <label for="text">Ethereum time capsule:</label><br>
-        <textarea id="capsule-message" rows="2" cols="25" placeholder="Write your time capsule message here..." required></textarea><br>
-        <label for="date">Select date:</label><br>
-        <input type="date" id="date-field" required><br>
-        <label for="time">Select time:</label><br>
-        <input type="time" id="time-field" required><br>
-        <button id="button" onclick="app.submitTimeCapsule()">Submit Message</button>
-
+        <div>
+            <label for="filter">Search Capsule on ethereum blockchain by Id (0-1000): </label>
+            <input type="text" id="get-capsule" required><br>
+            <button onclick="app.getTimeCapsule()">Search</button>
+        </div>
     <script type="application/json" src="contract.js"></script>
     <script>
     function loadJSON(callback) {   
@@ -47,7 +53,7 @@
     constructor(web3, AppContract) {
        this.web3 = web3;
        this.metamaskAccountID;
-       this.appContract = new this.web3.eth.Contract(AppContract.abi, "0x7D1320354E7B9C30c610a415866D5019F409edB0");
+       this.appContract = new this.web3.eth.Contract(AppContract.abi, "0x20c23d060ddD809Bd85B7B6C03bF35Be7e367C04");
        this.init()
     }
     
@@ -99,19 +105,28 @@
         return Math.round(d.getTime()/1000);
     }
 
-    getTimeCapsule() {
-        console.log("Hello World")
+    async getTimeCapsule() {
+        try {
+            let id = document.querySelector('#get-capsule').value;
+            //Call contract
+            let tt = await this.appContract.methods.retrieve().call();
+            console.log(tt);
+            let message = await this.appContract.methods.getTimeCapsule(id).call();
+            console.log(message);
+        } catch(e){
+            console.log(e);
+        }
     }
 
     async submitTimeCapsule() {
         try{
             //Get DOM input values
             let message = document.querySelector('#capsule-message').value;
-            let time = document.querySelector('input[type=time]').value.split(":",2);
+            let time = document.querySelector('input[type="time"]').value.split(":",2);
             let date = document.querySelector('input[type="date"]').value.split("-",3)
             let t = new Date();
             let current_timestamp = Math.round(t.getTime()/1000);
-            let future_timestamp = this._toTimestamp(date[0],Number(date[1])-1,date[2],time[0],time[1]);
+            let future_timestamp = this._toTimestamp(date[0],Number(date[1])-1,date[2],Number(time[0])-1,time[1]);
 
             console.log('current: ', current_timestamp);
             console.log('future: ', future_timestamp);
@@ -121,7 +136,12 @@
             } else if((isNaN(future_timestamp)) || (future_timestamp <= current_timestamp)) {
                 throw new Error('Please select a Future Date!!');
             }
-            await this.appContract.methods.submitTimeCapsule(message, future_timestamp).send({from: this.metamaskAccountID[0]});
+            let receipt = await this.appContract.methods.submitTimeCapsule(message, future_timestamp)
+                .send({
+                    from: this.metamaskAccountID[0],
+                    gas: 300000
+                });
+            console.log(receipt.events);
             alert('Time Capsule Submited!')
         } catch(e){
             alert(e.message);

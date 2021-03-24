@@ -29,7 +29,7 @@ contract TimeCapsule {
         _;
     }
 
-    event TimeCapsuleSubmited(uint256 id);
+    event TimeCapsuleSubmited(uint256 id, uint256 time, uint256 blockTimestamp);
 
     constructor() {
         owner = msg.sender;
@@ -44,8 +44,8 @@ contract TimeCapsule {
             timestamp: time,
             creatorAddress: msg.sender
         });
-
-        emit TimeCapsuleSubmited(ID);
+        
+        emit TimeCapsuleSubmited(ID, time, block.timestamp);
         ID = ID.add(1);
     }
 
@@ -53,6 +53,10 @@ contract TimeCapsule {
         require(capsules[id].creatorAddress != address(0), "Message ID doesn't exist.");
         require(block.timestamp >= capsules[id].timestamp, "Message can't be revealed yet, it is inmortalized!");
         return capsules[id].message;
+    }
+    
+    function retrieve() external view returns(uint256){
+        return block.timestamp;
     }
 
     //Change contract state Operational/Non-Operational
