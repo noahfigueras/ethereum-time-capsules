@@ -53,7 +53,7 @@
     constructor(web3, AppContract) {
        this.web3 = web3;
        this.metamaskAccountID;
-       this.appContract = new this.web3.eth.Contract(AppContract.abi, "0x20c23d060ddD809Bd85B7B6C03bF35Be7e367C04");
+       this.appContract = new this.web3.eth.Contract(AppContract.abi, "0x49c21F64501ffEF20eEeA30b40387F8A3F81a64C");
        this.init()
     }
     
@@ -109,12 +109,10 @@
         try {
             let id = document.querySelector('#get-capsule').value;
             //Call contract
-            let tt = await this.appContract.methods.retrieve().call();
-            console.log(tt);
             let message = await this.appContract.methods.getTimeCapsule(id).call();
-            console.log(message);
+            alert(message);
         } catch(e){
-            console.log(e);
+            console.log(e.message);
         }
     }
 
